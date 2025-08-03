@@ -35,6 +35,10 @@
       color: white;
       cursor: pointer;
       font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #1e40af;
     }
     textarea {
       height: 100px;
@@ -49,16 +53,22 @@
 
   <h1>Talha's Watch URL Encryptor</h1>
   <input type="text" id="videoUrl" placeholder="Paste your direct video URL here" />
-  <button onclick="encryptLink()">Generate Encrypted Link</button>
+  <button id="encryptBtn">Generate Encrypted Link</button>
   <textarea id="output" placeholder="Encrypted URL will appear here..." readonly></textarea>
 
   <script>
-    const rawKey = "Talha<watch>what!"; // 32 chars = 256-bit key
+    // 32-byte (256-bit) AES key as Uint8Array
+    const rawKey = new Uint8Array([
+      84,  97, 108, 104,  97, 115,  83, 117,
+      112, 101, 114,  83, 101,  99, 114, 101,
+      116,  75, 101, 121,  49,  50,  51,  52,
+      53,  54,  55,  56,  57,  48,  49,  50
+    ]);
 
     async function importKey() {
       return await crypto.subtle.importKey(
         "raw",
-        new TextEncoder().encode(rawKey),
+        rawKey,
         "AES-GCM",
         false,
         ["encrypt"]
@@ -92,14 +102,16 @@
         // Convert to base64
         const base64String = btoa(String.fromCharCode(...combined));
 
-        // Create full URL
-        const finalUrl = `https://talha-07-live.github.io/Talgas-watch-online-/index.html?data=${encodeURIComponent(base64String)}`;
+        // Create full URL WITHOUT index.html
+        const finalUrl = `https://talha-07-live.github.io/Talgas-watch-online-/?data=${encodeURIComponent(base64String)}`;
 
         document.getElementById("output").value = finalUrl;
       } catch (e) {
         alert("Encryption failed: " + e.message);
       }
     }
+
+    document.getElementById("encryptBtn").addEventListener("click", encryptLink);
   </script>
 
 </body>
