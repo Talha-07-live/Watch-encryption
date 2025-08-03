@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Encryption Tool | Talha's Watch</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    input, button, textarea {
+      width: 90%;
+      max-width: 600px;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+    }
+    button {
+      background-color: #2563eb;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    textarea {
+      height: 100px;
+      resize: none;
+      font-family: monospace;
+      background: #1e293b;
+      color: #a5b4fc;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Talha's Watch URL Encryptor</h1>
+  <input type="text" id="videoUrl" placeholder="Paste your direct video URL here" />
+  <button onclick="encryptLink()">Generate Encrypted Link</button>
+  <textarea id="output" placeholder="Encrypted URL will appear here..." readonly></textarea>
+
+  <script>
+    const rawKey = "TalhasSuperSecretKey1234567890123456"; // 32 chars = 256-bit key
+
+    async function importKey() {
+      return await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(rawKey),
+        "AES-GCM",
+        false,
+        ["encrypt"]
+      );
+    }
+
+    async function encryptLink() {
+      const url = document.getElementById("videoUrl").value.trim();
+      if (!url) {
+        alert("Please enter a valid URL");
+        return;
+      }
+
+      try {
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const encoder = new TextEncoder();
+        const encodedUrl = encoder.encode(url);
+        const key = await importKey();
+
+        const encryptedBuffer = await crypto.subtle.encrypt(
+          { name: "AES-GCM", iv },
+          key,
+          encodedUrl
+        );
+
+        // Combine iv + encrypted data
+        const combined = new Uint8Array(iv.byteLength + encryptedBuffer.byteLength);
+        combined.set(iv, 0);
+        combined.set(new Uint8Array(encryptedBuffer), iv.byteLength);
+
+        // Convert to base64
+        const base64String = btoa(String.fromCharCode(...combined));
+
+        // Create full URL
+        const finalUrl = `https://talha-07-live.github.io/Talgas-watch-online-/index.html?data=${encodeURIComponent(base64String)}`;
+
+        document.getElementById("output").value = finalUrl;
+      } catch (e) {
+        alert("Encryption failed: " + e.message);
+      }
+    }
+  </script>
+
+</body>
+</html>
